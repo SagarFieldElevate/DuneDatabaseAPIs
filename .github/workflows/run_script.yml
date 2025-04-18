@@ -26,6 +26,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt  # Include all your dependencies in requirements.txt
 
+    - name: Run Retail Consumption
+      run: |
+        python "./code/retailConsumption.py"
+        
     - name: Run 24h Volatility & Trading Range
       run: |
         python "./code/24h Volatility & Trading Range.py"
@@ -78,6 +82,4 @@ jobs:
       run: |
         python "./code/VolumeTraded.py"
 
-    - name: Run Retail Consumption
-      run: |
-        python "./code/retailConsumption.py"
+    
