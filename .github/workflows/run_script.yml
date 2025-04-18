@@ -1,4 +1,4 @@
-name: Fetch and Push Retail Data
+name: Fetch and Push Retail + Volatility Data
 
 on:
   schedule:
@@ -25,5 +25,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run data pipeline
+      - name: Run retail consumption upload
         run: python code/retailConsumption.py
+
+      - name: Run 24h Volatility & Trading Range upload
+        run: python "code/24h_Volatility_Trading_Range.py"
