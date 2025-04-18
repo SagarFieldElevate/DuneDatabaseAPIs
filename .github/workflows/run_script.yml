@@ -3,7 +3,7 @@ name: Fetch and Push Retail Data
 on:
   schedule:
     - cron: '0 * * * *'  # Every hour
-  workflow_dispatch:     # Allow manual runs too
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -14,7 +14,7 @@ jobs:
       DUNE_API_KEY: ${{ secrets.DUNE_API_KEY }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -23,7 +23,7 @@ jobs:
           python-version: 3.10
 
       - name: Install dependencies
-        run: pip install pandas requests fredapi
+        run: pip install -r requirements.txt
 
       - name: Run data pipeline
         run: python fetch_and_push.py
