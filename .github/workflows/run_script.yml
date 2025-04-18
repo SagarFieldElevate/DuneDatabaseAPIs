@@ -26,4 +26,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run data pipeline
-        run: python retailConsumption.py
+        run: python code/retailConsumption.py
