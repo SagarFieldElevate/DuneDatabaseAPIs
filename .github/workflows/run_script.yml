@@ -1,39 +1,83 @@
 name: Run Data Automation Scripts
 
-# Trigger this workflow on push to main, manually, or on a scheduled basis
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Allow manual triggers
+  workflow_dispatch:
   schedule:
-    # Run every hour
-    - cron: '0 * * * *'  # This runs the workflow at the start of every hour
+    - cron: '0 * * * *'  # This runs every hour
 
 jobs:
   run-scripts:
-    runs-on: ubuntu-latest  # You can use other runners like 'windows-latest' or 'macos-latest'
+    runs-on: ubuntu-latest
 
     steps:
-    # Checkout repository
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    # Set up Python
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8'  # Change to your desired version
+        python-version: '3.8'
 
-    # Install dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt  # Make sure to include all the necessary dependencies in requirements.txt
+        pip install -r requirements.txt  # Include all your dependencies in requirements.txt
 
-    # Run the scripts in parallel or sequentially
-    - name: Run data automation scripts
+    - name: Run 24h Volatility & Trading Range
       run: |
-        # Install any additional tools if necessary
-        pip install pycoingecko  # Example of required package, modify accordingly
-        python run_all.py  # Make sure you have the run_all.py script ready in your repository
+        python "./code/24h Volatility & Trading Range.py"
+
+    - name: Run CoinDesk Sentiment
+      run: |
+        python "./code/CoinDeskSentiment.py"
+
+    - name: Run Consumer Confidence
+      run: |
+        python "./code/ConsumerConfidence.py"
+
+    - name: Run Currency Exchange
+      run: |
+        python "./code/CurrencyExchange.py"
+
+    - name: Run GDP Data
+      run: |
+        python "./code/GDPData.py"
+
+    - name: Run Global GDP
+      run: |
+        python "./code/GlobalGDP.py"
+
+    - name: Run Google Trending
+      run: |
+        python "./code/GoogleTrending.py"
+
+    - name: Run Inflation Data
+      run: |
+        python "./code/InflationData.py"
+
+    - name: Run Interest Rate
+      run: |
+        python "./code/InterestRate.py"
+
+    - name: Run Market Cap
+      run: |
+        python "./code/MarketCap.py"
+
+    - name: Run Prices Script
+      run: |
+        python "./code/PricesScript.py"
+
+    - name: Run Unemployment Data
+      run: |
+        python "./code/UnemploymentData.py"
+
+    - name: Run Volume Traded
+      run: |
+        python "./code/VolumeTraded.py"
+
+    - name: Run Retail Consumption
+      run: |
+        python "./code/retailConsumption.py"
