@@ -1,0 +1,7 @@
+pandas
+requests
+pycoingecko
+openpyxl
+jupyter
+nbconvert
+fredapi
