@@ -1,27 +1,20 @@
 import os
-import requests
+import yfinance as yf
 import pandas as pd
-from pycoingecko import CoinGeckoAPI
+import requests
 from io import StringIO
 
 # === Dune Config ===
 DUNE_API_KEY = os.getenv("DUNE_API_KEY")
 DUNE_TABLE_NAME = "btc_daily_close_price"
 
-# === Initialize CoinGecko ===
-cg = CoinGeckoAPI()
+# === Fetch BTC data from yfinance (max duration) ===
+symbol = "BTC-USD"
+df = yf.download(symbol, period="max")[['Close']].reset_index()
 
-# === Fetch 365d BTC prices ===
-btc_market_data = cg.get_coin_market_chart_by_id(id='bitcoin', vs_currency='usd', days=365)
-
-# === Convert to DataFrame and extract daily close ===
-prices = btc_market_data['prices']
-df = pd.DataFrame(prices, columns=["timestamp", "price"])
-df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-df.set_index('timestamp', inplace=True)
-
-btc_daily_close = df.resample('1D').last().dropna().reset_index()
-btc_daily_close.columns = ['date', 'close_price_usd']
+# === Rename columns and format ===
+df.columns = ['date', 'close_price_usd']
+df['date'] = df['date'].dt.strftime('%Y-%m-%d')  # Format date as string
 
 # === Upload to Dune ===
 def upload_csv_to_dune(df: pd.DataFrame, table_name: str, api_key: str):
@@ -36,7 +29,7 @@ def upload_csv_to_dune(df: pd.DataFrame, table_name: str, api_key: str):
     }
     payload = {
         "data": csv_data,
-        "description": "Daily BTC closing price from CoinGecko (past 365 days)",
+        "description": "Daily BTC closing price from Yahoo Finance (Max Duration)",
         "table_name": table_name,
         "is_private": False
     }
@@ -45,4 +38,4 @@ def upload_csv_to_dune(df: pd.DataFrame, table_name: str, api_key: str):
     response.raise_for_status()
     print("✅ Uploaded to Dune:", table_name)
 
-upload_csv_to_dune(btc_daily_close, DUNE_TABLE_NAME, DUNE_API_KEY)
+upload_csv_to_dune(df, DUNE_TABLE_NAME, DUNE_API_KEY)
