@@ -2,6 +2,7 @@ pandas
 requests
 pycoingecko
 openpyxl
+yfinance
 jupyter
 nbconvert
 fredapi
