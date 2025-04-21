@@ -29,8 +29,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Run "SPYData.py"
+        run: python "./code/SPYData.py"
+        
+      - name: Run "QQQData.py"
+        run: python "./code/QQQData.py"
+        
       - name: Run "BTCPriceDaily.pyy"
         run: python "./code/BTCPriceDaily.py"
+        
+      - name: Run "GoldDailyPrice.py"
+        run: python "./code/GoldDailyPrice.py"
         
       - name: Run "24h Volatility & Trading Range.py"
         run: python "./code/24h Volatility & Trading Range.py"
