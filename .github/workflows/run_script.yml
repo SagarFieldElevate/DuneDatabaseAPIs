@@ -29,6 +29,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Run "code/M2Data.py"
+        run: python code/M2Data.py
+        
       - name: Run "USDollarIndex.pyy"
         run: python "./code/USDollarIndex.py"
         
