@@ -35,6 +35,9 @@ jobs:
       - name: Run "SPYData.py"
         run: python "./code/SPYData.py"
         
+      - name: Run "HousingPermit.py"
+        run: python "./code/HousingPermit.py"
+        
       - name: Run "QQQData.py"
         run: python "./code/QQQData.py"
         
