@@ -23,7 +23,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install pandas requests fredapi
+        run: pip install pandas requests fredapi yfiannce
 
       - name: Run data pipeline
         run: python code/USDollarIndex.py
