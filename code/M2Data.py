@@ -1,17 +1,17 @@
-# === Global M2 Sum to Dune ===
+# === Global M2 (Common Dates Only) to Dune ===
 import pandas as pd
 from datetime import datetime, timedelta
 import os
 import requests
 from fredapi import Fred
 
-# === Secrets & Config ===
+# === Config ===
 FRED_API_KEY = os.getenv("FRED_API_KEY")
 DUNE_API_KEY = os.getenv("DUNE_API_KEY")
 DUNE_TABLE_NAME = "global_m2_usd"
-DUNE_DESCRIPTION = "Daily global M2 (US, China, India, South Korea) in USD"
+DUNE_DESCRIPTION = "Daily global M2 in USD across US, China, India, and South Korea (only on common dates)"
 
-# === Fixed Currency Rates to USD ===
+# === Exchange Rates ===
 INR_TO_USD = 0.012
 CNY_TO_USD = 0.14
 KRW_TO_USD = 0.00073
@@ -28,18 +28,16 @@ def get_india_m3():
     df = pd.read_excel("data/RBIB Table No. 07 _ Sources of Money Stock (M3).xlsx", skiprows=5)
     df = df[['Date', 'M3 (1+2+3+4-5)']].dropna()
     df.columns = ['date', 'value']
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
-    df['value'] = pd.to_numeric(df['value'].astype(str).str.replace(',', ''), errors='coerce')
-    df = df[df['date'] >= datetime.now() - timedelta(days=3650)]
-    df['usd'] = (df['value'] * INR_TO_USD) / 1000  # billions
-    return df[['date', 'usd']]
+    df['date'] = pd.to_datetime(df['date'])
+    df['usd'] = pd.to_numeric(df['value'].astype(str).str.replace(',', ''), errors='coerce') * INR_TO_USD / 1000
+    return df[['date', 'usd']].dropna()
 
 # === China CNM2 from CSV ===
 def get_china_m2():
     df = pd.read_csv("data/ECONOMICS_CNM2, 1D.csv", usecols=['time', 'close'])
     df.columns = ['date', 'value']
     df['date'] = pd.to_datetime(df['date'])
-    df['usd'] = (df['value'] * CNY_TO_USD) / 1e9  # billions
+    df['usd'] = df['value'] * CNY_TO_USD / 1e9
     return df[['date', 'usd']]
 
 # === Korea KRM2 from CSV ===
@@ -47,37 +45,46 @@ def get_korea_m2():
     df = pd.read_csv("data/ECONOMICS_KRM2, 1D.csv", usecols=['time', 'close'])
     df.columns = ['date', 'value']
     df['date'] = pd.to_datetime(df['date'])
-    df['usd'] = (df['value'] * KRW_TO_USD) / 1e9  # billions
+    df['usd'] = df['value'] * KRW_TO_USD / 1e9
     return df[['date', 'usd']]
 
-# === Combine and Aggregate ===
-def get_global_m2():
-    df_all = pd.concat([
-        get_us_m2(),
-        get_india_m3(),
-        get_china_m2(),
-        get_korea_m2()
-    ])
-    df_all = df_all.groupby('date', as_index=False).agg(global_m2=('usd', 'sum'))
-    df_all['date'] = df_all['date'].dt.strftime('%Y-%m-%d')
-    return df_all.sort_values('date')
+# === Combine and Calculate Global M2 ===
+def compute_global_m2():
+    us = get_us_m2()
+    india = get_india_m3()
+    china = get_china_m2()
+    korea = get_korea_m2()
 
-# === Push to Dune ===
-def push_to_dune():
-    df = get_global_m2()
-    payload = {
-        "data": df.to_csv(index=False),
-        "description": DUNE_DESCRIPTION,
-        "table_name": DUNE_TABLE_NAME,
-        "is_private": False
-    }
+    # Round dates to day level
+    for df in [us, india, china, korea]:
+        df['date'] = df['date'].dt.floor('D')
+
+    # Merge on common dates
+    merged = us.merge(india, on='date', suffixes=('_us', '_inr')) \
+               .merge(china, on='date') \
+               .merge(korea, on='date', suffixes=('_cny', '_krw'))
+
+    merged['global_m2'] = merged[['usd_us', 'usd_inr', 'usd', 'usd_krw']].sum(axis=1)
+    return merged[['date', 'global_m2']].sort_values('date')
+
+# === Upload to Dune ===
+def push_to_dune(df):
+    csv_data = df.to_csv(index=False)
+    dune_url = "https://api.dune.com/api/v1/table/upload/csv"
     headers = {
         "X-DUNE-API-KEY": DUNE_API_KEY,
         "Content-Type": "application/json"
     }
-    res = requests.post("https://api.dune.com/api/v1/table/upload/csv", json=payload, headers=headers)
-    res.raise_for_status()
-    print("✅ Global M2 (USD) pushed to Dune successfully.")
+    payload = {
+        "data": csv_data,
+        "description": DUNE_DESCRIPTION,
+        "table_name": DUNE_TABLE_NAME,
+        "is_private": False
+    }
+    response = requests.post(dune_url, json=payload, headers=headers)
+    response.raise_for_status()
+    print("✅ Global M2 successfully pushed to Dune.")
 
 # === Run ===
-push_to_dune()
+df_global = compute_global_m2()
+push_to_dune(df_global)
