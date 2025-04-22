@@ -26,4 +26,4 @@ jobs:
         run: pip install pandas requests fredapi
 
       - name: Run data pipeline
-        run: python code/CoinDeskSentiment.py
+        run: python code/USDollarIndex.py
