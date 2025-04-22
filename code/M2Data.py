@@ -50,21 +50,22 @@ def get_korea_m2():
 
 # === Combine and Calculate Global M2 ===
 def compute_global_m2():
-    us = get_us_m2()
-    india = get_india_m3()
-    china = get_china_m2()
-    korea = get_korea_m2()
+    us = get_us_m2().rename(columns={'usd': 'usd_us'})
+    india = get_india_m3().rename(columns={'usd': 'usd_in'})
+    china = get_china_m2().rename(columns={'usd': 'usd_cn'})
+    korea = get_korea_m2().rename(columns={'usd': 'usd_kr'})
 
-    # Round dates to day level
+    # Round dates
     for df in [us, india, china, korea]:
         df['date'] = df['date'].dt.floor('D')
 
-    # Merge on common dates
-    merged = us.merge(india, on='date', suffixes=('_us', '_inr')) \
+    # Merge only on common dates
+    merged = us.merge(india, on='date') \
                .merge(china, on='date') \
-               .merge(korea, on='date', suffixes=('_cny', '_krw'))
+               .merge(korea, on='date')
 
-    merged['global_m2'] = merged[['usd_us', 'usd_inr', 'usd', 'usd_krw']].sum(axis=1)
+    # Sum all USD columns
+    merged['global_m2'] = merged[['usd_us', 'usd_in', 'usd_cn', 'usd_kr']].sum(axis=1)
     return merged[['date', 'global_m2']].sort_values('date')
 
 # === Upload to Dune ===
