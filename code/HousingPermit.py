@@ -23,9 +23,16 @@ def fetch_housing_permits_data(fred_api_key, series_id):
     
     # Convert the data to a pandas DataFrame
     df = pd.DataFrame(data['observations'])
+    
+    # Print the structure to see what columns are returned
+    print("DataFrame Columns Before Processing:", df.columns)
+    print("Data Sample:", df.head())
+
+    # Clean and process data
     df['date'] = pd.to_datetime(df['date'])
-    df['value'] = pd.to_numeric(df['value'])
-    df.columns = ['date', 'housing_permits']
+    df['housing_permits'] = pd.to_numeric(df['value'])
+    df = df[['date', 'housing_permits']]  # Keep only the necessary columns
+
     return df
 
 df = fetch_housing_permits_data(FRED_API_KEY, FRED_SERIES_ID)
