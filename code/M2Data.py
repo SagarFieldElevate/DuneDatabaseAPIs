@@ -55,18 +55,22 @@ def compute_global_m2():
     china = get_china_m2().rename(columns={'usd': 'usd_cn'})
     korea = get_korea_m2().rename(columns={'usd': 'usd_kr'})
 
-    # Round dates
     for df in [us, india, china, korea]:
         df['date'] = df['date'].dt.floor('D')
 
-    # Merge only on common dates
-    merged = us.merge(india, on='date') \
-               .merge(china, on='date') \
-               .merge(korea, on='date')
+    # Outer join all on 'date'
+    merged = pd.merge(us, india, on='date', how='outer') \
+               .merge(china, on='date', how='outer') \
+               .merge(korea, on='date', how='outer')
 
-    # Sum all USD columns
+    # Fill missing values with 0
+    merged.fillna(0, inplace=True)
+
+    # Sum all USD columns to get global M2
     merged['global_m2'] = merged[['usd_us', 'usd_in', 'usd_cn', 'usd_kr']].sum(axis=1)
+
     return merged[['date', 'global_m2']].sort_values('date')
+
 
 # === Upload to Dune ===
 def push_to_dune(df):
