@@ -26,9 +26,5 @@ jobs:
         run: pip install pandas requests fredapi yfinance
 
       - name: Run data pipeline
-        run: python code/HousingPermit.py
-        
-      - name: Run data pipeline
-        run: python code/USDollarIndex.py
-
+        run: python code/M2Data.py
         
